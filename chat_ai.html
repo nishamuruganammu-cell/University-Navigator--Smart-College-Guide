@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Advisor</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: url("{{ url_for('static', filename='images.png') }}") no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-box {
+            width: 820px;
+            height: 92vh;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #0b1d3a, #0072ff);
+            color: white;
+            padding: 14px 20px;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .chat-header small {
+            display: block;
+            font-size: 12px;
+            font-weight: normal;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: #f0f4f8;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .bubble-wrap { display: flex; flex-direction: column; }
+        .bubble-wrap.user { align-items: flex-end; }
+        .bubble-wrap.bot  { align-items: flex-start; }
+
+        .bubble {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .bubble.user {
+            background: #0072ff;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bubble.bot {
+            background: white;
+            color: #222;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .bubble.tip {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            white-space: pre-line;
+        }
+
+        .label {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 3px;
+            padding: 0 4px;
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 11px;
+            background: #e8f0fe;
+            color: #0072ff;
+            border-radius: 20px;
+            padding: 2px 10px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .field { margin: 3px 0; }
+        .field b { color: #0b1d3a; }
+
+        a.uni-link {
+            display: inline-block;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #0072ff;
+            text-decoration: none;
+        }
+        a.uni-link:hover { text-decoration: underline; }
+
+        .input-area {
+            display: flex;
+            padding: 12px 15px;
+            gap: 8px;
+            background: white;
+            border-top: 1px solid #ddd;
+            align-items: center;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 11px 14px;
+            border-radius: 25px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input-area input:focus { border-color: #0072ff; }
+
+        .mic-btn {
+            font-size: 22px;
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 50%;
+            border: none;
+            background: #f0f4f8;
+            transition: background 0.2s;
+            line-height: 1;
+        }
+
+        .mic-btn.listening { background: #ffe0e0; animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(255,0,0,0.3); }
+            70%  { box-shadow: 0 0 0 8px rgba(255,0,0,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,0,0,0); }
+        }
+
+        .send-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            background: #0072ff;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .send-btn:hover { background: #005bcc; }
+
+        .hint-bar {
+            font-size: 11px;
+            color: #aaa;
+            text-align: center;
+            padding: 4px 0 8px;
+            background: white;
+        }
+    </style>
+</head>
+
+<body>
+<div class="chat-box">
+
+    <div class="chat-header">
+        🎓 AI University Advisor
+        <small>Ask me about universities, scholarships, CGPA matching &amp; more</small>
+    </div>
+
+    <div class="messages" id="msgArea">
+
+        {% if not chat %}
+        <div class="bubble-wrap bot">
+            <div class="label">AI Advisor</div>
+            <div class="bubble bot">
+                👋 Hello! I'm your AI University Advisor.<br><br>
+                I can answer questions based on our database. Try asking:<br><br>
+                🎓 <b>Universities</b><br>
+                &nbsp;&nbsp;• <i>Top 5 universities in Canada</i><br>
+                &nbsp;&nbsp;• <i>Best research universities in Japan</i><br>
+                &nbsp;&nbsp;• <i>Description of University of Sharjah</i><br>
+                &nbsp;&nbsp;• <i>Universities with score above 80</i><br><br>
+                📊 <b>GRE &amp; CGPA</b><br>
+                &nbsp;&nbsp;• <i>What GRE does Stanford University require?</i><br>
+                &nbsp;&nbsp;• <i>My GRE is 320, where should I apply?</i><br>
+                &nbsp;&nbsp;• <i>I have CGPA 8.5 — suggest universities</i><br><br>
+                💰 <b>Scholarships</b><br>
+                &nbsp;&nbsp;• <i>Master scholarships in UK</i><br>
+                &nbsp;&nbsp;• <i>PhD funding in Canada</i><br>
+                &nbsp;&nbsp;• <i>How many scholarships in India?</i><br><br>
+                ⚖️ <b>Compare</b><br>
+                &nbsp;&nbsp;• <i>Compare Oxford and Cambridge</i>
+            </div>
+        </div>
+        {% endif %}
+
+        {% for c in chat %}
+
+        <div class="bubble-wrap user">
+            <div class="label">You</div>
+            <div class="bubble user">{{ c.user }}</div>
+        </div>
+
+        {% for r in c.bot %}
+        <div class="bubble-wrap bot">
+            <div class="label">AI Advisor</div>
+
+            {% if r['Type'] == "University" %}
+            <div class="bubble bot">
+                <span class="badge">🎓 University</span><br>
+                <div class="field"><b>{{ r['Name'] }}</b></div>
+                <div class="field">🌍 <b>Country:</b> {{ r.get('Country', 'N/A') }}</div>
+                <div class="field">⭐ <b>Overall Score:</b> {{ r.get('Overall Score', r.get('Score', 'N/A')) }}</div>
+                {% if r.get('Research Score') %}<div class="field">🔬 <b>Research:</b> {{ r['Research Score'] }}</div>{% endif %}
+                {% if r.get('Teaching Score') %}<div class="field">👨‍🏫 <b>Teaching:</b> {{ r['Teaching Score'] }}</div>{% endif %}
+                <div class="field">📝 {{ r.get('Description', '') }}</div>
+                {% if r.get('Website') and r['Website'] != '#' %}
+                <a class="uni-link" href="{{ r['Website'] }}" target="_blank">🔗 Visit Website</a>
+                {% endif %}
+            </div>
+
+            {% elif r['Type'] == "GRE Stats" %}
+            <div class="bubble bot">
+                <span class="badge">📊 GRE & CGPA Data</span><br>
+                <div class="field"><b>{{ r['University'] }}</b></div>
+                {% if r.get('Field') %}<div class="field">🎓 <b>Field:</b> {{ r['Field'] }}</div>{% endif %}
+                <div class="field">🗣️ <b>GRE Verbal:</b> {{ r.get('GRE Verbal', 'N/A') }}</div>
+                <div class="field">🔢 <b>GRE Quant:</b> {{ r.get('GRE Quant', 'N/A') }}</div>
+                <div class="field">✍️ <b>GRE AWA:</b> {{ r.get('GRE AWA', 'N/A') }}</div>
+                <div class="field">📈 <b>CGPA:</b> {{ r.get('CGPA', 'N/A') }}</div>
+            </div>
+
+            {% elif r['Type'] == "Recommended (CGPA Match)" %}
+            <div class="bubble bot">
+                <span class="badge">🎯 CGPA Match</span><br>
+                <div class="field"><b>{{ r['University'] }}</b></div>
+                {% if r.get('Field') %}<div class="field">🎓 <b>Field:</b> {{ r['Field'] }}</div>{% endif %}
+                <div class="field">📊 <b>CGPA:</b> {{ r['CGPA'] }}</div>
+                <div class="field">🧠 <b>GRE V/Q:</b> {{ r['GRE V/Q'] }}</div>
+            </div>
+
+            {% elif r['Type'] == "Scholarship" %}
+            <div class="bubble bot">
+                <span class="badge">💰 Scholarship</span><br>
+                <div class="field"><b>{{ r['Name'] }}</b></div>
+                <div class="field">💵 <b>Funding:</b> {{ r['Funds'] }}</div>
+                <div class="field">🎓 <b>Degrees:</b> {{ r['Degrees'] }}</div>
+                <div class="field">📍 <b>Location:</b> {{ r['Location'] | replace('-', ' ') | title }}</div>
+            </div>
+
+            {% elif r['Type'] == "Comparison" %}
+            <div class="bubble bot">
+                <span class="badge">⚖️ Comparison</span><br>
+                <div class="field"><b>{{ r['Universities'] }}</b></div>
+                <div class="field">⭐ <b>Overall:</b> {{ r['Overall Score'] }}</div>
+                <div class="field">🔬 <b>Research:</b> {{ r['Research'] }}</div>
+                <div class="field">👨‍🏫 <b>Teaching:</b> {{ r['Teaching'] }}</div>
+                {% if r.get('Citations') %}<div class="field">📑 <b>Citations:</b> {{ r['Citations'] }}</div>{% endif %}
+                <div class="field">🏆 <b>Better Pick:</b> {{ r['Better University'] }}</div>
+            </div>
+
+            {% elif r['Type'] == "Tip" %}
+            <div class="bubble bot tip">{{ r['Message'] }}</div>
+
+            {% else %}
+            <div class="bubble bot">{{ r.get('Message', '') }}</div>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+
+        {% endfor %}
+
+    </div>
+
+    <div class="hint-bar">💡 Try: "description of University of Sharjah" · "top 5 research universities" · "master scholarships in UK" · "my GRE is 315 where to apply"</div>
+
+    <form method="POST" class="input-area" id="chatForm" onsubmit="onSend()">
+        <button type="button" class="mic-btn" id="micBtn" onclick="toggleVoice()" title="Click to speak">🎤</button>
+        <input type="text" id="msgBox" name="message" placeholder="Ask me anything about universities..." required autocomplete="off">
+        <button type="submit" class="send-btn">Send ➤</button>
+    </form>
+
+</div>
+
+<script>
+const micBtn  = document.getElementById("micBtn");
+const msgBox  = document.getElementById("msgBox");
+const chatForm = document.getElementById("chatForm");
+let isListening = false;
+
+// Auto-scroll to bottom on load
+window.addEventListener("load", () => {
+    const area = document.getElementById("msgArea");
+    if (area) area.scrollTop = area.scrollHeight;
+});
+
+function onSend() {
+    setTimeout(() => { msgBox.value = ""; }, 50);
+}
+
+function toggleVoice() {
+    if (isListening) return; // prevent double-tap
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("Voice input requires Chrome or Edge. Please use one of those browsers.");
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.continuous = false;      // single utterance
+    recognition.interimResults = true;   // show live typing
+
+    recognition.onstart = () => {
+        isListening = true;
+        micBtn.textContent = "🔴";
+        micBtn.classList.add("listening");
+        micBtn.title = "Listening… speak now";
+        msgBox.placeholder = "🎤 Listening…";
+    };
+
+    recognition.onresult = (event) => {
+        let transcript = "";
+        for (let i = 0; i < event.results.length; i++) {
+            transcript += event.results[i][0].transcript;
+        }
+        msgBox.value = transcript;
+    };
+
+    recognition.onend = () => {
+        isListening = false;
+        micBtn.textContent = "🎤";
+        micBtn.classList.remove("listening");
+        micBtn.title = "Click to speak";
+        msgBox.placeholder = "Ask me anything about universities...";
+
+        // Auto-submit if there's text
+        if (msgBox.value.trim()) {
+            setTimeout(() => chatForm.submit(), 300);
+        }
+    };
+
+    recognition.onerror = (event) => {
+        isListening = false;
+        micBtn.textContent = "🎤";
+        micBtn.classList.remove("listening");
+        msgBox.placeholder = "Ask me anything about universities...";
+        if (event.error !== "no-speech") {
+            alert("Mic error: " + event.error + ". Make sure microphone permission is allowed.");
+        }
+    };
+
+    recognition.start();
+}
+</script>
+
+</body>
+</html>

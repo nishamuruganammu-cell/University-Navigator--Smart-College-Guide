@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: url("{{ url_for('static', filename='images.png') }}") no-repeat center center fixed;
+    background-size: cover;
+}
+
+.overlay {
+    height:100vh;
+    width:100%;
+    background: rgba(0,0,0,0.6);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.box {
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    width:400px;
+    text-align:center;
+}
+
+input, select {
+    width:90%;
+    padding:10px;
+    margin:8px 0;
+}
+
+button {
+    padding:10px 20px;
+    background:#0b3d91;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+button:hover {
+    background:#082c6c;
+}
+
+.back-btn {
+    background:gray;
+    margin-top:10px;
+}
+
+/* 🔥 FIXED MODAL */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width:100%;
+    height:100%;
+    background: rgba(0,0,0,0.7);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-box {
+    background:white;
+    padding:25px;
+    border-radius:10px;
+    width:350px;
+    text-align:center;
+}
+
+.modal-box ul {
+    list-style:none;
+    padding:0;
+}
+
+.modal-box li {
+    padding:6px 0;
+    font-weight:bold;
+}
+
+.modal-box li a {
+    color: #0b3d91;
+    text-decoration: none;
+}
+
+.modal-box li a:hover {
+    text-decoration: underline;
+    color: #082c6c;
+}
+
+.rank-num {
+    display: inline-block;
+    background: #0b3d91;
+    color: white;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    font-size: 12px;
+    margin-right: 8px;
+    text-align: center;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="overlay">
+
+<div class="box">
+
+<h2>🎓 Graduate Admission</h2>
+
+<form method="POST" action="/graduate">
+
+    <input type="number" step="any" name="greV" placeholder="GRE Verbal" required>
+<input type="number" step="any" name="greQ" placeholder="GRE Quant" required>
+<input type="number" step="any" name="greA" placeholder="GRE AWA" required>
+<input type="number" step="any" name="cgpa" placeholder="CGPA" required>
+
+    <button type="submit">Get Universities</button>
+
+</form>
+
+<button class="back-btn" onclick="window.location.href='/'">
+⬅ Back
+</button>
+
+</div>
+
+</div>
+
+<!-- RESULT MODAL -->
+{% if universities and universities|length > 0 %}
+<div class="modal">
+    <div class="modal-box">
+
+        <h3>🎓 Top 5 Universities</h3>
+
+        <ul>
+        {% for uni in universities %}
+            <li>
+                <span class="rank-num">{{ loop.index }}</span>
+                {% if uni.get('Link') and uni['Link'] != 'nan' %}
+                    <a href="{{ uni['Link'] }}" target="_blank">{{ uni.univName }}</a>
+                {% else %}
+                    {{ uni.univName }}
+                {% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+
+        <!-- reload page to close -->
+        <button onclick="window.location.href='/graduate'">Close</button>
+
+    </div>
+</div>
+{% endif %}
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+    margin: 0;
+    background: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
+
+/* Top header bar */
+.header {
+    background: black;
+    padding: 15px;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start; /* LEFT side */
+    align-items: center;
+    z-index: 1000;
+    border-bottom: 1px solid #222;
+}
+
+/* Menu icon (left) */
+.menu-btn {
+    font-size: 28px;
+    cursor: pointer;
+    padding-left: 10px;
+}
+
+/* Sidebar */
+.sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: #111;
+    overflow-x: hidden;
+    transition: 0.3s;
+    padding-top: 60px;
+    z-index: 2000;
+}
+
+/* Links */
+.sidebar a {
+    padding: 12px 20px;
+    display: block;
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+.sidebar a:hover {
+    background: #575757;
+}
+
+/* Close button */
+.closebtn {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+/* Image section */
+.box {
+    margin-top: 60px;
+}
+
+.box img {
+    width: 100vw;
+    height: calc(100vh - 60px);
+    object-fit: cover;
+    display: block;
+}
+</style>
+</head>
+
+<div id="mySidebar" class="sidebar">
+  <a href="javascript:void(0)" class="closebtn" onclick="closeMenu()">×</a>
+
+  {% if logged_in %}
+      <a href="/graduate">Graduate</a>
+      <a href="/undergraduate">Undergraduate</a>
+      <a href="/compare">Compare</a>
+      <a href="/scholarship">Scholarship</a>
+      <a href="/chat">AI Advisor</a>
+      <a href="/logout">Logout</a>
+  {% else %}
+      <a href="/login">Login</a>
+  {% endif %}
+
+</div>
+
+<!-- Top header (LEFT hamburger) -->
+<div class="header">
+    <span class="menu-btn" onclick="openMenu()">☰</span>
+</div>
+
+<!-- Image -->
+<div class="box">
+   <img src="{{ url_for('static', filename='university.png') }}" 
+     alt="University Navigator">
+</div>
+
+<script>
+function openMenu() {
+    document.getElementById("mySidebar").style.width = "250px";
+}
+
+function closeMenu() {
+    document.getElementById("mySidebar").style.width = "0";
+}
+</script>
+
+</body>
+</html>
